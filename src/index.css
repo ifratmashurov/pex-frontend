@@ -1,0 +1,122 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #080b0f;
+  --bg2: #0f1318;
+  --bg3: #161c24;
+  --border: #1e2630;
+  --text: #c8d6e5;
+  --text-dim: #4a5a6e;
+  --text-muted: #2a3a4e;
+  --accent: #00e5a0;
+  --accent-dim: #00b47d;
+  --accent-glow: rgba(0, 229, 160, 0.15);
+  --red: #ff4d6a;
+  --red-glow: rgba(255, 77, 106, 0.15);
+  --yellow: #ffd166;
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --radius: 6px;
+  --transition: 0.15s ease;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* Selection */
+::selection { background: var(--accent-glow); color: var(--accent); }
+
+/* Focus */
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Utilities */
+.mono { font-family: var(--mono); }
+.green { color: var(--accent); }
+.red { color: var(--red); }
+.dim { color: var(--text-dim); }
+.muted { color: var(--text-muted); }
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: var(--sans);
+  font-size: 13px;
+  transition: all var(--transition);
+}
+
+input, select, textarea {
+  font-family: var(--sans);
+  font-size: 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  width: 100%;
+  transition: border-color var(--transition);
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+}
+
+input::placeholder {
+  color: var(--text-muted);
+}
+
+label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 5px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes tickerFlash {
+  0% { background: var(--accent-glow); }
+  100% { background: transparent; }
+}
+
+@keyframes tickerFlashRed {
+  0% { background: var(--red-glow); }
+  100% { background: transparent; }
+}
+
+.flash-green { animation: tickerFlash 0.8s ease; }
+.flash-red { animation: tickerFlashRed 0.8s ease; }
