@@ -69,7 +69,7 @@ const useWebSocket = (onMessage, isAuthenticated) => {
         wsRef.current.close();
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   }, [isAuthenticated]); // reconnect only when auth status changes
 
   return wsRef;

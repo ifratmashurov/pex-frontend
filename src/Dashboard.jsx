@@ -47,7 +47,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     if (!myStockData.error) setMyStock(myStockData);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => { loadAll(); }, []);
 
   // ─── WebSocket message handler ──────────────────────────────────────────────
