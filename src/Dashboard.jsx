@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from './api';
 import useWebSocket from './useWebSocket';
 import './Dashboard.css';
@@ -27,7 +27,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const prevPricesRef = useRef({});
 
   // ─── Load initial data ──────────────────────────────────────────────────────
-  const loadAll = useCallback(async () => {
+  const loadAll = async () => {
     const [stocksData, portfolioData] = await Promise.all([
       api.getAllStocks(),
       api.getPortfolio()
@@ -45,18 +45,18 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
     const myStockData = await api.getMyStock();
     if (!myStockData.error) setMyStock(myStockData);
-  }, []);
+  };
 
-  useEffect(() => { loadAll(); }, [loadAll]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadAll(); }, []);
 
   // ─── WebSocket message handler ──────────────────────────────────────────────
-  const handleWsMessage = useCallback((data) => {
+  const handleWsMessage = (data) => {
     if (data.type === 'TICKER_UPDATE') {
       const { ticker, price } = data.payload;
 
       setPrices(prev => {
         const prevPrice = prev[ticker] ?? price;
-        // determine flash colour
         const flashColor = price > prevPrice ? 'green' : price < prevPrice ? 'red' : null;
         if (flashColor) {
           setFlashes(f => ({ ...f, [ticker]: flashColor }));
@@ -65,12 +65,11 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         return { ...prev, [ticker]: price };
       });
 
-      // Also update stocks array
       setStocks(prev =>
         prev.map(s => s.ticker === ticker ? { ...s, price } : s)
       );
     }
-  }, []);
+  };
 
   useWebSocket(handleWsMessage, true);
 

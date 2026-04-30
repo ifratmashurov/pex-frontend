@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:4000';
 
@@ -11,60 +11,66 @@ const useWebSocket = (onMessage, isAuthenticated) => {
   const wsRef = useRef(null);
   const reconnectTimerRef = useRef(null);
   const mountedRef = useRef(true);
-
-  const connect = useCallback(() => {
-    if (!mountedRef.current) return;
-
-    const token = localStorage.getItem('pex_token');
-
-    // Pass token via Sec-WebSocket-Protocol header
-    // Format: ["token", "<jwt>"] — server reads the non-"token" entry
-    const protocols = token ? ['token', token] : undefined;
-
-    const ws = new WebSocket(WS_URL, protocols);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      console.log('🟢 WS connected');
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        onMessage(data);
-      } catch (e) {
-        console.warn('WS parse error', e);
-      }
-    };
-
-    ws.onerror = (err) => {
-      console.warn('WS error', err);
-    };
-
-    ws.onclose = () => {
-      console.log('🔴 WS disconnected');
-      if (mountedRef.current) {
-        // Reconnect after 3 seconds
-        reconnectTimerRef.current = setTimeout(() => {
-          if (mountedRef.current) connect();
-        }, 3000);
-      }
-    };
-  }, [onMessage]);
+  // Always keep latest onMessage in a ref — prevents reconnect on every render
+  const onMessageRef = useRef(onMessage);
+  useEffect(() => { onMessageRef.current = onMessage; }, [onMessage]);
 
   useEffect(() => {
     mountedRef.current = true;
+
+    const connect = () => {
+      if (!mountedRef.current) return;
+
+      // Close existing connection if any
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.close();
+      }
+
+      const token = localStorage.getItem('pex_token');
+      // Pass token via Sec-WebSocket-Protocol header (browser limitation workaround)
+      const protocols = token ? ['token', token] : undefined;
+
+      const ws = new WebSocket(WS_URL, protocols);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        console.log('🟢 WS connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          onMessageRef.current(data);
+        } catch (e) {
+          console.warn('WS parse error', e);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.warn('WS error', err);
+      };
+
+      ws.onclose = () => {
+        console.log('🔴 WS disconnected, reconnecting...');
+        if (mountedRef.current) {
+          reconnectTimerRef.current = setTimeout(connect, 3000);
+        }
+      };
+    };
+
     connect();
 
     return () => {
       mountedRef.current = false;
       clearTimeout(reconnectTimerRef.current);
       if (wsRef.current) {
-        wsRef.current.onclose = null; // prevent reconnect on intentional unmount
+        wsRef.current.onclose = null;
         wsRef.current.close();
       }
     };
-  }, [connect, isAuthenticated]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // reconnect only when auth status changes
 
   return wsRef;
 };
